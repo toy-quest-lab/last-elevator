@@ -235,6 +235,40 @@ requestAnimationFrame(animate);
 go('start');
 
 
+
+/* Original environment artwork pass: industrial corridor texture and perspective. */
+const primitiveDrawScene=drawScene;
+drawScene=function(canvas,t=0){
+ primitiveDrawScene(canvas,t);
+ if(canvas.dataset.scene!=='pov')return;
+ const c=canvas.getContext('2d'),stride=Math.sin(t/110)*1.5;
+ c.save();c.imageSmoothingEnabled=false;
+ // Long perspective rails and cable conduits, built from vanishing-point geometry.
+ for(let side of [-1,1]){
+   const edge=side<0?0:320,inner=160+side*38;
+   c.fillStyle='#1b2731';c.beginPath();c.moveTo(edge,0);c.lineTo(inner,52);c.lineTo(inner,137);c.lineTo(edge,200);c.fill();
+   c.strokeStyle='#65707a';c.lineWidth=3;c.beginPath();c.moveTo(edge,16);c.lineTo(inner,65);c.stroke();
+   c.strokeStyle='#394f57';c.lineWidth=2;c.beginPath();c.moveTo(edge,149);c.lineTo(inner,130);c.stroke();
+   for(let j=0;j<5;j++){
+     const depth=(j+.35)/5,px=160+side*(38+Math.pow(depth,1.7)*125),height=8+depth*70;
+     c.fillStyle=j%2?'#33424b':'#293943';c.fillRect(px-2,87-height,4,height*2);
+     c.fillStyle='#67736f';c.fillRect(px-3,85-height,6,2);
+     if(j%2===0){c.fillStyle='#57452f';c.fillRect(px+side*5,85-height/2,5+depth*7,5+depth*6)}
+   }
+ }
+ // Flickering ceiling luminaires and overhead wire shadows.
+ for(let j=0;j<4;j++){
+   const d=j/4,yy=7+d*d*49,w=9+d*22;
+   c.fillStyle=Math.sin(t/280+j*5)>.87?'#d5b77e':'#9b895e';c.fillRect(160-w/2,yy,w,3+d*2);
+   c.fillStyle='#d1b87b13';c.fillRect(160-w,yy+4,w*2,7+d*5);
+ }
+ // Ground debris and surface scuffs, increasing in size toward the camera.
+ for(let j=0;j<30;j++){
+   const x=(j*83+19)%320,y=139+((j*47)%60),sz=1+Math.floor((y-135)/19);
+   c.fillStyle=j%4===0?'#6c6556':'#3d4547';c.fillRect(x,y+stride,sz*2,sz);
+ }
+ c.restore();
+};
 /* Chase direction: cinematic over-the-shoulder glance at pursuing zombies. */
 const baseDrawScene=drawScene;
 drawScene=function(canvas,t=0){
