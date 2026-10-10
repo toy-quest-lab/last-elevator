@@ -269,6 +269,32 @@ drawScene=function(canvas,t=0){
  }
  c.restore();
 };
+
+/* Art pass 2: high-contrast industrial corridor. Intentionally obvious at 320x200. */
+const oldIndustrialDraw=drawScene;
+drawScene=function(canvas,t=0){
+ oldIndustrialDraw(canvas,t);
+ if(canvas.dataset.scene!=='pov')return;
+ const c=canvas.getContext('2d');c.save();c.imageSmoothingEnabled=false;
+ const vanX=160,vanY=92,beat=Math.sin(t/130)*2;
+ // Floor with strongly visible tiles, scratches and hazard strips.
+ c.fillStyle='#252e32';c.beginPath();c.moveTo(104,130);c.lineTo(216,130);c.lineTo(320,200);c.lineTo(0,200);c.fill();
+ for(let i=1;i<=5;i++){let d=i/5,y=130+70*d*d;c.strokeStyle=i%2?'#62716b':'#445450';c.lineWidth=1+d*2;c.beginPath();c.moveTo(160-160*d,y);c.lineTo(160+160*d,y);c.stroke()}
+ for(let k=-3;k<=3;k++){c.strokeStyle='#485650';c.lineWidth=2;c.beginPath();c.moveTo(160+k*10,130);c.lineTo(160+k*47,200);c.stroke()}
+ // Two large pipes on left wall, with bright metal brackets.
+ for(let x of [12,28]){c.strokeStyle=x===12?'#987d5d':'#526d73';c.lineWidth=8;c.beginPath();c.moveTo(x,-10);c.lineTo(119,70);c.stroke();c.strokeStyle='#b5a187';c.lineWidth=2;c.beginPath();c.moveTo(x+2,0);c.lineTo(119,70);c.stroke()}
+ for(let y of [35,80,125]){let x=18+y*.48;c.fillStyle='#a9a8a0';c.fillRect(x-5,y-3,16,6);c.fillStyle='#1b2528';c.fillRect(x,y-2,8,4)}
+ // Right wall: emergency boxes, exposed wiring, and torn caution posters.
+ c.fillStyle='#5b4940';c.fillRect(265,62,34,42);c.fillStyle='#1a242b';c.fillRect(269,66,26,34);
+ c.fillStyle='#c3a35c';c.fillRect(273,72,19,4);c.fillStyle='#b64c3e';c.fillRect(273,81,14,11);
+ c.strokeStyle='#a2744b';c.lineWidth=3;c.beginPath();c.moveTo(299,104);c.lineTo(306,125);c.lineTo(292,157);c.stroke();
+ c.fillStyle='#d5b94f';c.fillRect(240,110,21,13);c.fillStyle='#202322';for(let j=0;j<4;j++)c.fillRect(240+j*6,110,3,13);
+ // Foreground stains, broken shards and prominent floor debris.
+ for(let j=0;j<14;j++){let x=(j*73+27)%320,y=158+(j*17)%42,w=3+(j%5)*3;c.fillStyle=j%3===0?'#8a7660':j%3===1?'#58675e':'#171f23';c.fillRect(x,y+beat,w,2+(j%3))}
+ // Flickering red alarm casts a visibly moving glow.
+ if(Math.sin(t/280)>-.25){c.fillStyle='#a52b2835';c.fillRect(0,0,68,200);c.fillStyle='#df675a';c.fillRect(8,38,21,7)}
+ c.restore();
+};
 /* Chase direction: cinematic over-the-shoulder glance at pursuing zombies. */
 const baseDrawScene=drawScene;
 drawScene=function(canvas,t=0){
