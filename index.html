@@ -8,7 +8,7 @@
 .portrait-small{width:64px;height:64px;margin:0;object-fit:contain}
 .board{image-rendering:pixelated}.panel{border-radius:0}.pixel-sub{color:#efbe77;font-weight:900;text-align:center;letter-spacing:2px}
 </style></head><body><main id="app"></main><script>
-const app=document.getElementById('app');let stage='start',board=[],selected=null,turn='player',busy=false,chain=null,result='',hint=false,mode='normal';const N=6;const isDark=(r,c)=>(r+c)%2===1;const inside=(r,c)=>r>=0&&r<N&&c>=0&&c<N;function b(t,fn,cls=''){const el=document.createElement('button');el.textContent=t;el.className=cls;el.onclick=fn;return el}function screen(title,body,buttons=[]){app.innerHTML='';const p=document.createElement('section');p.className='panel';p.innerHTML=`<div class="logo">${title}</div>${body}`;let a=document.createElement('div');a.className='actions';buttons.forEach(([label,fn,cls])=>a.append(b(label,fn,cls||'')));p.append(a);app.append(p);drawPixels()}function go(s){stage=s;if(s==='start')screen('Последний лифт','<p class="sub">ПИКСЕЛЬНЫЙ ХОРРОР · ДЕМО 0.3</p><canvas class="pixel-scene" data-scene="chase" width="320" height="200"></canvas><p>Зомби уже рядом. В конце коридора — единственный работающий лифт. Или почти работающий...</p>',[['НАЧАТЬ',()=>go('chase')],['Правила',()=>go('rules'),'secondary']]);if(s==='rules')screen('Правила','<p>Шашки 6×6: светлые — ваши, красные — противник. Ходите по диагонали. Взятие обязательно; если есть продолжение взятия, ход продолжается. Дамка ходит на любое расстояние по диагонали.</p><p>Цель — забрать все шашки соперника или лишить его ходов. На телефоне нажмите шашку, затем подсвеченную клетку.</p>',[['НАЗАД',()=>go('start')]]);if(s==='chase')screen('ПОГОНЯ','<canvas class="pixel-scene" data-scene="chase" width="320" height="200"></canvas><div class="dialogue">Сзади грохот и хрип. Двери лифта начинают закрываться. Успеешь?</div>',[['ЗАБЕЖАТЬ В ЛИФТ',()=>go('elevator')]]);if(s==='elevator')screen('ЛИФТ','<canvas class="pixel-scene" data-scene="elevator" width="320" height="200"></canvas><div class="screen">НЕТ МАРШРУТА</div><div class="dialogue">Кнопки оплавились. Лифт не едет. Снаружи кто-то скребёт дверь. Сверху раздаётся кашель...</div>',[['ПОСМОТРЕТЬ ВВЕРХ',()=>go('taxi')]]);if(s==='taxi')screen('ПОПУТЧИК','<canvas class="taxi-portrait" data-portrait="taxi" width="96" height="96"></canvas><div class="dialogue">— Командир лифта приветствует вас на борту. Шашечки или ехать?<br><br>— За дверью зомби!<br><br>— Я понял. Значит, шашечки.</div>',[['СЫГРАТЬ',startGame]]);if(s==='loss')showLoss();if(s==='end')screen(result==='win'?'ПОБЕДА':result==='lose'?'РЕЙС ОТМЕНЁН':'НИЧЬЯ',`<div class="taxi">${result==='win'?'🌌':'👨🏻‍✈️'}</div><div class="dialogue">${result==='win'?'— Посадку разрешаю. Следующий этаж — неизвестен!<br>Двери открываются на остановку посреди космоса.':result==='lose'?'— К сожалению, ваша поездка отменяется. Но ожидание уже оплачено.':'— Похоже, никуда мы сегодня не едем. Зато какая партия!'}</div>`,[['ИГРАТЬ СНОВА',startGame],['В НАЧАЛО',()=>go('start'),'secondary']])}
+const app=document.getElementById('app');let stage='start',board=[],selected=null,turn='player',busy=false,chain=null,result='',hint=false,mode='normal';const N=6;const isDark=(r,c)=>(r+c)%2===1;const inside=(r,c)=>r>=0&&r<N&&c>=0&&c<N;function b(t,fn,cls=''){const el=document.createElement('button');el.textContent=t;el.className=cls;el.onclick=fn;return el}function screen(title,body,buttons=[]){app.innerHTML='';const p=document.createElement('section');p.className='panel';p.innerHTML=`<div class="logo">${title}</div>${body}`;let a=document.createElement('div');a.className='actions';buttons.forEach(([label,fn,cls])=>a.append(b(label,fn,cls||'')));p.append(a);app.append(p);drawPixels()}function go(s){stage=s;if(s==='start')screen('Последний лифт','<p class="sub">ПИКСЕЛЬНЫЙ ХОРРОР · ДЕМО 0.4</p><canvas class="pixel-scene" data-scene="chase" width="320" height="200"></canvas><p>Зомби уже рядом. В конце коридора — единственный работающий лифт. Или почти работающий...</p>',[['НАЧАТЬ',()=>go('chase')],['Правила',()=>go('rules'),'secondary']]);if(s==='rules')screen('Правила','<p>Шашки 6×6: светлые — ваши, красные — противник. Ходите по диагонали. Взятие обязательно; если есть продолжение взятия, ход продолжается. Дамка ходит на любое расстояние по диагонали.</p><p>Цель — забрать все шашки соперника или лишить его ходов. На телефоне нажмите шашку, затем подсвеченную клетку.</p>',[['НАЗАД',()=>go('start')]]);if(s==='chase')screen('ПОГОНЯ','<canvas class="pixel-scene" data-scene="chase" width="320" height="200"></canvas><div class="dialogue">Сзади грохот и хрип. Двери лифта начинают закрываться. Успеешь?</div>',[['ЗАБЕЖАТЬ В ЛИФТ',()=>go('elevator')]]);if(s==='elevator')screen('ЛИФТ','<canvas class="pixel-scene" data-scene="elevator" width="320" height="200"></canvas><div class="screen">НЕТ МАРШРУТА</div><div class="dialogue">Кнопки оплавились. Лифт не едет. Снаружи кто-то скребёт дверь. Сверху раздаётся кашель...</div>',[['ПОСМОТРЕТЬ ВВЕРХ',()=>go('taxi')]]);if(s==='taxi')screen('ПОПУТЧИК','<canvas class="taxi-portrait" data-portrait="taxi" width="96" height="96"></canvas><div class="dialogue">— Командир лифта приветствует вас на борту. Шашечки или ехать?<br><br>— За дверью зомби!<br><br>— Я понял. Значит, шашечки.</div>',[['СЫГРАТЬ',startGame]]);if(s==='loss')showLoss();if(s==='end')screen(result==='win'?'ПОБЕДА':result==='lose'?'РЕЙС ОТМЕНЁН':'НИЧЬЯ',`<div class="taxi">${result==='win'?'🌌':'👨🏻‍✈️'}</div><div class="dialogue">${result==='win'?'— Посадку разрешаю. Следующий этаж — неизвестен!<br>Двери открываются на остановку посреди космоса.':result==='lose'?'— К сожалению, ваша поездка отменяется. Но ожидание уже оплачено.':'— Похоже, никуда мы сегодня не едем. Зато какая партия!'}</div>`,[['ИГРАТЬ СНОВА',startGame],['В НАЧАЛО',()=>go('start'),'secondary']])}
 let lossTimer=null;
 function showLoss(){
   if(lossTimer)clearTimeout(lossTimer);
@@ -34,7 +34,7 @@ const dirs=[[-1,-1],[-1,1],[1,-1],[1,1]];function movesFor(B,r,c,captureOnly=fal
 function allMoves(B,side,forced=null){let captures=[],normal=[];for(let r=0;r<N;r++)for(let c=0;c<N;c++){if(B[r][c]?.side!==side||(forced&&(forced[0]!==r||forced[1]!==c)))continue;let ms=movesFor(B,r,c,!!forced);for(const m of ms)(m.cap?captures:normal).push(m)}return captures.length?captures:(forced?[]:normal)}
 function apply(B,m){let [r,c]=m.from,[tr,tc]=m.to,p=B[r][c];B[r][c]=null;B[tr][tc]=p;if(m.cap)B[m.cap[0]][m.cap[1]]=null;if(!p.king&&(tr===0&&p.side==='player'||tr===N-1&&p.side==='ai'))p.king=true}
 function endCheck(){let me=allMoves(board,'player'),ai=allMoves(board,'ai');if(!me.length||!ai.length){result=!ai.length?'win':'lose';go(result==='lose'?'loss':'end');return true}return false}
-function render(){if(stage!=='game')return;app.innerHTML='';let p=document.createElement('section');p.className='panel';p.innerHTML='<div class="logo" style="font-size:29px">ШАШЕЧКИ ИЛИ ЕХАТЬ?</div><div class="hud"><span>🚕 Лифтёр</span><span>6 × 6</span><span>🙂 Вы</span></div>';let boardEl=document.createElement('div');boardEl.className='board';let legal=turn==='player'?allMoves(board,'player',chain):[];let target=selected?legal.filter(m=>m.from[0]===selected[0]&&m.from[1]===selected[1]):[];for(let r=0;r<N;r++)for(let c=0;c<N;c++){let cell=document.createElement('button');cell.className='cell '+(isDark(r,c)?'dark ':'')+(selected?.[0]===r&&selected?.[1]===c?'selected ':'')+(target.some(m=>m.to[0]===r&&m.to[1]===c)?'legal':'');cell.setAttribute('aria-label',`Клетка ${r+1},${c+1}`);let q=board[r][c];if(q){let piece=document.createElement('div');piece.className='piece '+q.side;piece.textContent=q.king?'♛':'';cell.append(piece)}cell.onclick=()=>clickCell(r,c);boardEl.append(cell)}p.append(boardEl);let status=document.createElement('div');status.className='status';status.textContent=busy?'Лифтёр думает...':chain?'Продолжайте взятие!':turn==='player'?'Ваш ход. '+(legal.some(m=>m.cap)?'Взятие обязательно!':'Выберите шашку.'):'Ход лифтёра';p.append(status);let actions=document.createElement('div');actions.className='actions';actions.append(b('Заново',startGame,'secondary'),b('Выйти',()=>go('start'),'secondary'));p.append(actions);let foot=document.createElement('div');foot.className='foot';foot.textContent='Демо 0.3 • русские шашки на доске 6×6 • без сервера';p.append(foot);app.append(p);drawPixels()}
+function render(){if(stage!=='game')return;app.innerHTML='';let p=document.createElement('section');p.className='panel';p.innerHTML='<div class="logo" style="font-size:29px">ШАШЕЧКИ ИЛИ ЕХАТЬ?</div><div class="hud"><span>🚕 Лифтёр</span><span>6 × 6</span><span>🙂 Вы</span></div>';let boardEl=document.createElement('div');boardEl.className='board';let legal=turn==='player'?allMoves(board,'player',chain):[];let target=selected?legal.filter(m=>m.from[0]===selected[0]&&m.from[1]===selected[1]):[];for(let r=0;r<N;r++)for(let c=0;c<N;c++){let cell=document.createElement('button');cell.className='cell '+(isDark(r,c)?'dark ':'')+(selected?.[0]===r&&selected?.[1]===c?'selected ':'')+(target.some(m=>m.to[0]===r&&m.to[1]===c)?'legal':'');cell.setAttribute('aria-label',`Клетка ${r+1},${c+1}`);let q=board[r][c];if(q){let piece=document.createElement('div');piece.className='piece '+q.side;piece.textContent=q.king?'♛':'';cell.append(piece)}cell.onclick=()=>clickCell(r,c);boardEl.append(cell)}p.append(boardEl);let status=document.createElement('div');status.className='status';status.textContent=busy?'Лифтёр думает...':chain?'Продолжайте взятие!':turn==='player'?'Ваш ход. '+(legal.some(m=>m.cap)?'Взятие обязательно!':'Выберите шашку.'):'Ход лифтёра';p.append(status);let actions=document.createElement('div');actions.className='actions';actions.append(b('Заново',startGame,'secondary'),b('Выйти',()=>go('start'),'secondary'));p.append(actions);let foot=document.createElement('div');foot.className='foot';foot.textContent='Демо 0.4 • русские шашки на доске 6×6 • без сервера';p.append(foot);app.append(p);drawPixels()}
 function clickCell(r,c){if(stage!=='game'||busy||turn!=='player')return;let ms=allMoves(board,'player',chain);if(selected){let m=ms.find(m=>m.from[0]===selected[0]&&m.from[1]===selected[1]&&m.to[0]===r&&m.to[1]===c);if(m){apply(board,m);selected=null;if(m.cap){let next=allMoves(board,'player',[r,c]);if(next.some(x=>x.cap)){chain=[r,c];selected=[r,c];render();return}}chain=null;if(endCheck())return;turn='ai';busy=true;render();setTimeout(aiMove,400);return}}if(board[r][c]?.side==='player'&&ms.some(m=>m.from[0]===r&&m.from[1]===c))selected=[r,c];else if(!chain)selected=null;render()}
 function aiMove(){if(stage!=='game')return;let ms=allMoves(board,'ai');if(!ms.length){result='win';go('end');return}let scored=ms.map(m=>({m,score:(m.cap?8:0)+(m.to[0]-m.from[0])*.4+(2.5-Math.abs(2.5-m.to[1]))*.15+Math.random()*.6}));scored.sort((a,b)=>b.score-a.score);let m=scored[0].m;apply(board,m);if(m.cap){let next=allMoves(board,'ai',m.to).filter(x=>x.cap);if(next.length){render();setTimeout(()=>aiContinue(m.to),350);return}}finishAI()}
 function aiContinue(pos){if(stage!=='game')return;let next=allMoves(board,'ai',pos).filter(x=>x.cap);if(!next.length){finishAI();return}let m=next[Math.floor(Math.random()*next.length)];apply(board,m);render();setTimeout(()=>aiContinue(m.to),350)}function finishAI(){busy=false;turn='player';if(endCheck())return;render()}
@@ -50,7 +50,7 @@ function person(ctx,x,y,scale=1,zombie=false){
   rect(ctx,-4,4,2,2,zombie?'#e9d763':'#101923');rect(ctx,3,4,2,2,zombie?'#e9d763':'#101923');
   rect(ctx,-6,-3,12,4,zombie?'#313f38':'#282333');ctx.restore()
 }
-function drawScene(canvas){
+function drawScene(canvas,t=0){
   let c=canvas.getContext('2d');c.imageSmoothingEnabled=false;
   const scene=canvas.dataset.scene;
   rect(c,0,0,320,200,'#101a27');
@@ -60,7 +60,11 @@ function drawScene(canvas){
   if(scene==='chase'){
     rect(c,125,26,70,116,'#9c825f');rect(c,128,29,64,110,'#c7a474');
     rect(c,120,13,80,7,'#d7b97e');rect(c,121,14,78,2,'#fce3a2');
-    person(c,161,102,1.25,false);person(c,45,111,1.6,true);person(c,79,128,1.3,true);
+    const progress=Math.min(1,t/4200),stride=Math.sin(t/110)*3;
+    person(c,40+progress*125,104+stride,1.25,false);
+    person(c,Math.max(-20,5+progress*110),114+Math.sin(t/190)*3,1.6,true);
+    person(c,Math.max(-30,-38+progress*116),132+Math.sin(t/230)*4,1.3,true);
+    rect(c,0,0,320,200,Math.sin(t/320)>0.94?'#f3e4ae22':'#00000000');
     rect(c,2,5,65,11,'#431c2b');rect(c,5,8,54,5,'#b84047');
   }else{
     rect(c,127,30,65,112,'#485564');rect(c,158,30,3,112,'#121d29');
@@ -71,9 +75,10 @@ function drawScene(canvas){
   }
   for(let i=0;i<16;i++)rect(c,(i*47)%319,(i*29)%198,2,2,'#58666d');
 }
-function drawTaxi(canvas){
+function drawTaxi(canvas,t=0){
   let c=canvas.getContext('2d');c.imageSmoothingEnabled=false;
   c.clearRect(0,0,96,96);
+  c.save();c.translate(0,Math.max(0,18-t/45)+Math.sin(t/400)*1.2);
   // blue lift-operator overalls over pilot shirt and epaulettes
   rect(c,18,61,60,35,'#d3d4be');rect(c,19,65,14,5,'#e0b65e');rect(c,65,65,13,5,'#e0b65e');
   rect(c,28,64,41,32,'#345e82');rect(c,29,60,9,31,'#345e82');rect(c,60,60,9,31,'#345e82');
@@ -86,11 +91,27 @@ function drawTaxi(canvas){
   rect(c,22,8,55,12,'#182e48');rect(c,28,1,44,9,'#243e58');rect(c,17,19,65,7,'#192c43');
   for(let i=0;i<9;i++)rect(c,26+i*5,13,5,5,i%2?'#e2c77b':'#1b2738');
   rect(c,33,84,24,10,'#17344b');rect(c,39,86,14,4,'#d0a85c');
+  // taxi emblem, epaulettes and overall clasps
+  rect(c,34,65,7,3,'#e4c77c');rect(c,59,65,7,3,'#e4c77c');
+  rect(c,31,70,5,5,'#e3bb72');rect(c,62,70,5,5,'#e3bb72');
+  rect(c,43,17,4,4,'#fff1bd');rect(c,47,21,4,4,'#fff1bd');
+  rect(c,51,17,4,4,'#fff1bd');
+  rect(c,35,44,8,3,'#342323');rect(c,55,44,8,3,'#342323');
+  c.restore();
 }
 function drawPixels(){
-  document.querySelectorAll('canvas[data-scene]').forEach(drawScene);
-  document.querySelectorAll('canvas[data-portrait]').forEach(drawTaxi);
+  document.querySelectorAll('canvas[data-scene]').forEach(el=>drawScene(el,0));
+  document.querySelectorAll('canvas[data-portrait]').forEach(el=>drawTaxi(el,0));
 }
 
+let animStart=performance.now(),lastStage='';
+function animate(now){
+ if(lastStage!==stage){animStart=now;lastStage=stage}
+ const t=now-animStart;
+ document.querySelectorAll('canvas[data-scene]').forEach(el=>drawScene(el,t));
+ document.querySelectorAll('canvas[data-portrait]').forEach(el=>drawTaxi(el,t));
+ requestAnimationFrame(animate);
+}
+requestAnimationFrame(animate);
 go('start');
 </script></body></html>
