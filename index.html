@@ -219,6 +219,29 @@ function animate(now){
 requestAnimationFrame(animate);
 go('start');
 
+
+/* Chase direction: cinematic over-the-shoulder glance at pursuing zombies. */
+const baseDrawScene=drawScene;
+drawScene=function(canvas,t=0){
+ baseDrawScene(canvas,t);
+ if(canvas.dataset.scene!=='pov')return;
+ const c=canvas.getContext('2d');
+ const phase=t%6900;
+ if(phase<1600||phase>3500)return;
+ const reveal=Math.min(1,(phase-1600)/300,(3500-phase)/380);
+ c.save();c.globalAlpha=Math.max(0,reveal);
+ // Turning to look back: receding corridor perspective, pursuers close behind.
+ c.fillStyle='#10151c';c.fillRect(0,0,320,200);
+ c.fillStyle='#34404b';c.beginPath();c.moveTo(0,0);c.lineTo(320,0);c.lineTo(205,80);c.lineTo(115,80);c.fill();
+ c.fillStyle='#293039';c.beginPath();c.moveTo(0,200);c.lineTo(115,80);c.lineTo(205,80);c.lineTo(320,200);c.fill();
+ for(let i=0;i<4;i++){let x=60+i*65;c.fillStyle='#3b4b42';c.fillRect(x,95+(i%2)*12,33,53);c.fillStyle='#8b9c72';c.fillRect(x+5,77+(i%2)*12,24,25);c.fillStyle='#f3aa6c';c.fillRect(x+8,86+(i%2)*12,5,3);c.fillRect(x+21,86+(i%2)*12,5,3)}
+ // One zombie reaches toward the lens; the arm grows as it approaches.
+ const approach=Math.min(1,Math.max(0,(phase-2100)/900)),handScale=.65+approach*1.7;
+ c.translate(230,140);c.scale(handScale,handScale);
+ c.fillStyle='#778a63';c.fillRect(-12,-4,26,100);c.fillRect(-23,-33,44,39);
+ for(let j=0;j<4;j++)c.fillRect(-23+j*11,-66+(j%2)*6,8,40);
+ c.fillStyle='#394839';c.fillRect(-23,-33,44,7);c.restore();
+};
 /* Rebuilt navigation with immersive mobile chase; preserve checkers and endings */
 const originalGo=go, originalRender=render;
 let chaseTransition=false;
