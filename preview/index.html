@@ -105,20 +105,6 @@ html,body{min-height:100%;overflow-x:hidden}body{display:block;background:#080d1
 #app[data-stage="taxi"] .hatch{flex-shrink:0}
 #app[data-stage="taxi"] .logo{font-size:clamp(20px,6vw,32px);padding-right:43px}
 .sound-toggle{top:calc(62px + env(safe-area-inset-top));width:40px;height:40px}
-
-/* Animated physical zombies and full-screen theatrical splatter */
-.loss-dark .loss-zombies{display:flex;justify-content:space-around;align-items:flex-end;height:100%;width:100%;font-size:0!important;gap:0}
-.loss-dark .loss-zombies .loss-zombie{display:block;width:32%;height:92%;background:url('./assets/zombie.svg') center bottom/contain no-repeat;filter:drop-shadow(0 0 12px #c84c31);animation:zombieLunge 1.3s ease-in .7s both}
-.loss-dark .loss-zombies .loss-zombie:nth-child(2){height:100%;animation-delay:.83s;filter:drop-shadow(0 0 15px #dca14e)}
-.loss-dark .loss-zombies .loss-zombie:nth-child(3){animation-delay:.94s;filter:drop-shadow(0 0 10px #6cbb67)}
-@keyframes zombieLunge{from{transform:translateY(60px) scale(.45);opacity:0}55%{opacity:1}to{transform:translateY(-10px) scale(1.45);opacity:1}}
-.loss-scene{overflow:hidden}
-.loss-splash{pointer-events:none;z-index:9}
-.loss-splash .gore-pixel{border-radius:18% 36% 20% 45%;animation:goreSlide 2.2s cubic-bezier(.25,.3,.4,1) both!important;transform-origin:top}
-@keyframes goreSlide{0%{opacity:0;transform:translateY(-90px) scaleY(.3)}28%{opacity:1;transform:translateY(0) scaleY(1)}75%{opacity:1;transform:translateY(75px) scaleY(2.3)}100%{opacity:.9;transform:translateY(190px) scaleY(3.4)}}
-.loss-scene:after{content:"";position:absolute;z-index:8;inset:0;pointer-events:none;background:linear-gradient(to bottom,#8e292600,#8e292600 55%,#5b191a4d 95%);animation:lossBloodWash 2.2s 1s both}
-@keyframes lossBloodWash{from{opacity:0}to{opacity:1}}
-@media(prefers-reduced-motion:reduce){.loss-dark .loss-zombies .loss-zombie,.loss-splash .gore-pixel,.loss-scene:after{animation:none!important}}
 </style></head><body><main id="app"></main><script>
 const app=document.getElementById('app');let stage='start',board=[],selected=null,turn='player',busy=false,chain=null,result='',hint=false,mode='normal';const N=6;const isDark=(r,c)=>(r+c)%2===1;const inside=(r,c)=>r>=0&&r<N&&c>=0&&c<N;function b(t,fn,cls=''){const el=document.createElement('button');el.textContent=t;el.className=cls;el.onclick=fn;return el}function screen(title,body,buttons=[]){app.innerHTML='';const p=document.createElement('section');p.className='panel';p.innerHTML=`<div class="logo">${title}</div>${body}`;let a=document.createElement('div');a.className='actions';buttons.forEach(([label,fn,cls])=>a.append(b(label,fn,cls||'')));p.append(a);app.append(p);drawPixels()}function go(s){if(panelTimer)clearTimeout(panelTimer);stage=s;if(s==='start')screen('Последний лифт','<p class="sub">ПИКСЕЛЬНЫЙ ХОРРОР · СБОРКА 1.0</p><canvas class="pixel-scene" data-scene="chase" width="320" height="200"></canvas><p>Зомби уже рядом. В конце коридора — единственный работающий лифт. Или почти работающий...</p>',[['НАЧАТЬ',()=>go('chase')],['Правила',()=>go('rules'),'secondary']]);if(s==='rules')screen('Правила','<p>Шашки 6×6: светлые — ваши, красные — противник. Ходите по диагонали. Взятие обязательно; если есть продолжение взятия, ход продолжается. Дамка ходит на любое расстояние по диагонали.</p><p>Цель — забрать все шашки соперника или лишить его ходов. На телефоне нажмите шашку, затем подсвеченную клетку.</p>',[['НАЗАД',()=>go('start')]]);if(s==='chase')screen('ПОГОНЯ','<div class="pov-wrap"><canvas class="pixel-scene pov-scene" data-scene="pov" width="320" height="200"></canvas><div class="hero-bubble">🗯️ Лифт! Я должен успеть!</div></div><div class="dialogue">За спиной слышится топот. Двери лифта уже открыты!</div>',[['ЗАБЕЖАТЬ В ЛИФТ',()=>go('elevator')]]);if(s==='elevator'){elevatorPresses=0;screen('ПАНЕЛЬ ЛИФТА','<div class="elevator-panel"><div class="elevator-display">ОШИБКА 404<br><small>МАРШРУТ НЕ НАЙДЕН</small></div><div class="elevator-buttons">'+Array.from({length:10},(_,i)=>'<button class="floor-button" data-floor="'+(10-i)+'" aria-label="Этаж '+(10-i)+'">'+(10-i)+'</button>').join('')+'</div><div class="burn-mark"></div><div class="spark" id="panel-spark">✦</div></div><div class="dialogue" id="panel-message">Кнопки оплавлены. Попробуй выбрать этаж.</div><div class="panel-hint" id="panel-next" aria-live="polite"></div>');document.querySelectorAll('.floor-button').forEach(btn=>btn.addEventListener('click',()=>pressFloor(btn)));}if(s==='taxi'){taxiLineIndex=0;}if(s==='taxi')screen('ПОТОЛОЧНЫЙ ЛЮК','<div class="hatch"><div class="hatch-lid"></div><canvas class="taxi-portrait" data-portrait="taxi" width="96" height="96"></canvas></div><div class="dialogue" id="taxi-line" aria-live="polite">— Шашечки или ехать?</div>',[['ДАЛЬШЕ',nextTaxiLine]]);if(s==='loss')showLoss();if(s==='end')screen(result==='win'?'ПОБЕДА':result==='lose'?'РЕЙС ОТМЕНЁН':'НИЧЬЯ',`<div class="taxi">${result==='win'?'🌌':'👨🏻‍✈️'}</div><div class="dialogue">${result==='win'?'— Ну что ж. Шашечки были. Теперь ехать.<br>Двери открываются на космической остановке «КОНЕЧНАЯ». Пересадка на автобус. Билеты у водителя.':result==='lose'?'— Проиграл. Выходите. Следующая поездка по расписанию.':'— Ничья. Значит, ни шашечки, ни ехать. ОЖИДАНИЕ: БЕССРОЧНО.'}</div>`,[['ИГРАТЬ СНОВА',startGame],['В НАЧАЛО',()=>go('start'),'secondary']])}
 let taxiLineIndex=0;const taxiLines=['— Шашечки или ехать?','— Что?! Там зомби! Мне срочно наверх!','— Наверх — это ко мне. А ехать — это по правилам.','— Каким ещё правилам?!','— Шесть на шесть. Белые твои. Проиграешь — выйдешь.','— А если выиграю?','— Тогда поедем. Я ведь не зверь.'];
@@ -126,7 +112,7 @@ function nextTaxiLine(){taxiLineIndex++;if(taxiLineIndex>=taxiLines.length){star
 let lossTimer=null;
 function showLoss(){
   if(lossTimer)clearTimeout(lossTimer);
-  app.innerHTML=`<section class="panel loss-panel"><div class="logo" style="font-size:29px">РЕЙС ОТМЕНЁН</div><div class="loss-scene" aria-label="Двери лифта открываются, за ними зомби, затем экран закрывает пиксельная зелёно-красная масса"><div class="loss-dark"><span class="loss-zombies"><span class="loss-zombie"></span><span class="loss-zombie"></span><span class="loss-zombie"></span></span><div class="loss-glow"></div></div><div class="loss-door left"></div><div class="loss-door right"></div><div class="loss-splash" id="loss-splash"></div><div class="loss-caption" id="loss-caption">ДВЕРИ ОТКРЫВАЮТСЯ...</div></div><div class="dialogue">— К сожалению, ваша поездка отменяется. Но ожидание уже оплачено.</div><div class="actions" id="loss-actions"></div></section>`;
+  app.innerHTML=`<section class="panel loss-panel"><div class="logo" style="font-size:29px">РЕЙС ОТМЕНЁН</div><div class="loss-scene" aria-label="Двери лифта открываются, за ними зомби, затем экран закрывает пиксельная зелёно-красная масса"><div class="loss-dark"><span class="loss-zombies">🧟 🧟‍♂️ 🧟</span><div class="loss-glow"></div></div><div class="loss-door left"></div><div class="loss-door right"></div><div class="loss-splash" id="loss-splash"></div><div class="loss-caption" id="loss-caption">ДВЕРИ ОТКРЫВАЮТСЯ...</div></div><div class="dialogue">— К сожалению, ваша поездка отменяется. Но ожидание уже оплачено.</div><div class="actions" id="loss-actions"></div></section>`;
   const splash=document.getElementById('loss-splash');
   for(let i=0;i<110;i++){
     const dot=document.createElement('i');dot.className='gore-pixel';
@@ -491,44 +477,6 @@ drawScene=function(canvas,t=0){
  // Subtle vignette and danger flashes.
  const grad=c.createRadialGradient(160,100,35,160,100,205);grad.addColorStop(0,'#0000');grad.addColorStop(1,'#03080ab8');c.fillStyle=grad;c.fillRect(0,0,320,200);
  if(phase>2900&&phase<3400&&Math.sin(t/80)>.5){c.fillStyle='#8d252522';c.fillRect(0,0,320,200)}
- c.restore();
-};
-
-
-/* Independent skeletal motion over authored zombie sprites: shoulders, elbows, knees, head. */
-const beforeZombieSkeleton=drawScene;
-drawScene=function(canvas,t=0){
- beforeZombieSkeleton(canvas,t);
- if(canvas.dataset.scene!=='pov')return;
- const phase=t%6800;
- if(phase<2050||phase>3650||!chaseZombie.complete||!chaseZombie.naturalWidth)return;
- const c=canvas.getContext('2d'),approach=Math.min(1,(phase-2050)/1200);
- const runners=[{x:67,base:68,sz:73,offset:0},{x:163,base:61,sz:107,offset:1.5},{x:249,base:71,sz:78,offset:3}];
- c.save();c.imageSmoothingEnabled=false;
- runners.forEach((z,index)=>{
-  const scale=z.sz*(1+approach*.65)/220,bob=Math.sin(t/95+z.offset)*5;
-  const cx=z.x,cy=z.base+32+bob,step=Math.sin(t/105+z.offset);
-  c.save();c.translate(cx,cy);c.scale(scale,scale);
-  // Both legs alternate, with bent knees and feet.
-  for(let side of [-1,1]){
-   const swing=step*side;
-   c.strokeStyle='#1a2828';c.lineWidth=23;c.lineCap='round';
-   c.beginPath();c.moveTo(side*22,0);c.lineTo(side*25+swing*23,43);c.lineTo(side*25+swing*37,89);c.stroke();
-   c.strokeStyle='#61786b';c.lineWidth=15;c.beginPath();c.moveTo(side*22,0);c.lineTo(side*25+swing*23,43);c.lineTo(side*25+swing*37,83);c.stroke();
-   c.fillStyle='#1a272a';c.fillRect(side*25+swing*37-10,79,24,10);
-   // Swinging forearms and distinct claw hands.
-   c.strokeStyle='#283a34';c.lineWidth=22;c.beginPath();c.moveTo(side*42,-83);c.lineTo(side*53-swing*17,-47);c.lineTo(side*40-swing*32,-11);c.stroke();
-   c.strokeStyle=index===1?'#a4b18a':'#859d7b';c.lineWidth=13;c.beginPath();c.moveTo(side*42,-83);c.lineTo(side*53-swing*17,-47);c.lineTo(side*40-swing*32,-11);c.stroke();
-   c.fillStyle='#9caf89';c.beginPath();c.ellipse(side*40-swing*32,-10,12,14,0,0,Math.PI*2);c.fill();
-  }
-  // Head motion is distinct from torso motion; bright hostile eyes.
-  const headSwing=Math.sin(t/220+z.offset)*5;
-  c.fillStyle='#8da284';c.beginPath();c.ellipse(headSwing,-147,29,33,headSwing/70,0,Math.PI*2);c.fill();
-  c.fillStyle='#f3ac6b';c.fillRect(headSwing-18,-153,11,6);c.fillRect(headSwing+8,-153,11,6);
-  c.fillStyle='#252a27';c.fillRect(headSwing-14,-151,5,5);c.fillRect(headSwing+12,-151,5,5);
-  c.fillStyle='#422f2d';c.fillRect(headSwing-10,-129,21,5);
-  c.restore();
- });
  c.restore();
 };
 
