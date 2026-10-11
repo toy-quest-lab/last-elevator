@@ -389,6 +389,34 @@ drawScene=function(canvas,t=0){
  c.restore();
 };
 
+
+/* Smooth checker travel: render-independent ghost animation, no board scaling. */
+const originalApplyForMotion=apply;
+apply=function(B,m){
+ const source=document.querySelectorAll('.board .cell')[m.from[0]*N+m.from[1]];
+ const piece=source?.querySelector('.piece');
+ const start=piece?.getBoundingClientRect();
+ const visual=piece?.cloneNode(true);
+ const willCrown=B[m.from[0]][m.from[1]]&&!B[m.from[0]][m.from[1]].king&&((B[m.from[0]][m.from[1]].side==='player'&&m.to[0]===0)||(B[m.from[0]][m.from[1]].side==='ai'&&m.to[0]===N-1));
+ originalApplyForMotion(B,m);
+ if(!start||!visual||window.matchMedia('(prefers-reduced-motion: reduce)').matches)return;
+ requestAnimationFrame(()=>{
+  const destination=document.querySelectorAll('.board .cell')[m.to[0]*N+m.to[1]];
+  const target=destination?.querySelector('.piece');
+  if(!target)return;
+  const end=target.getBoundingClientRect();
+  const ghost=visual;
+  ghost.classList.add('moving-checker');
+  ghost.style.cssText='position:fixed!important;left:'+start.left+'px;top:'+start.top+'px;width:'+start.width+'px;height:'+start.height+'px;z-index:9999;pointer-events:none;margin:0;transition:none;transform:none;';
+  document.body.append(ghost);
+  target.style.visibility='hidden';
+  const dx=end.left-start.left,dy=end.top-start.top;
+  const anim=ghost.animate([{transform:'translate(0,0)'},{transform:'translate('+dx+'px,'+dy+'px)'}],{duration:260,easing:'cubic-bezier(.25,.8,.3,1)',fill:'forwards'});
+  anim.onfinish=()=>{ghost.remove();if(target.isConnected){target.style.visibility='';if(willCrown){target.animate([{filter:'brightness(1)'},{filter:'brightness(2.3)'},{filter:'brightness(1)'}],{duration:420});}}};
+  anim.oncancel=()=>{ghost.remove();if(target.isConnected)target.style.visibility=''};
+ });
+};
+
 /* Procedural soundscape: generated locally, no external audio files required. */
 let audioEnabled=true,audioCtx=null,footstepTimer=null;
 function soundContext(){if(!audioEnabled)return null;try{audioCtx=audioCtx||new (window.AudioContext||window.webkitAudioContext)();if(audioCtx.state==='suspended')audioCtx.resume();return audioCtx}catch(e){return null}}
