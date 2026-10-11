@@ -338,6 +338,23 @@ go=function(s){
 };
 render=function(){originalRender();if(stage==='game')app.dataset.stage='game'};
 
+
+/* Dedicated authored background artwork, separate from the gameplay canvas. */
+const corridorArtwork=new Image();corridorArtwork.src='./assets/industrial-corridor.svg';
+const drawWithProceduralArt=drawScene;
+drawScene=function(canvas,t=0){
+ drawWithProceduralArt(canvas,t);
+ if(canvas.dataset.scene!=='pov'||!corridorArtwork.complete||!corridorArtwork.naturalWidth)return;
+ const c=canvas.getContext('2d'),phase=t%6900;
+ // In the forward-facing portion of the chase the new background is fully visible.
+ if(phase>=1550&&phase<=3600)return;
+ c.save();c.imageSmoothingEnabled=false;
+ const p=Math.min(1,phase/3900),zoom=1+p*.23,bob=Math.sin(t/110)*1.8;
+ c.translate(160,100+bob);c.scale(zoom,zoom);c.translate(-160,-100);
+ c.drawImage(corridorArtwork,0,0,320,200);
+ c.restore();
+};
+
 /* Procedural soundscape: generated locally, no external audio files required. */
 let audioEnabled=true,audioCtx=null,footstepTimer=null;
 function soundContext(){if(!audioEnabled)return null;try{audioCtx=audioCtx||new (window.AudioContext||window.webkitAudioContext)();if(audioCtx.state==='suspended')audioCtx.resume();return audioCtx}catch(e){return null}}
