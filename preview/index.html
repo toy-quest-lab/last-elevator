@@ -400,6 +400,86 @@ drawScene=function(canvas,t=0){
 };
 
 
+
+/* Cinematic chase v8: perspective-driven geometry instead of static background zoom. */
+const chaseZombie=new Image();chaseZombie.src='./assets/zombie.svg';
+const priorCinematicDraw=drawScene;
+drawScene=function(canvas,t=0){
+ if(canvas.dataset.scene!=='pov'){priorCinematicDraw(canvas,t);return}
+ const c=canvas.getContext('2d');c.imageSmoothingEnabled=false;
+ const phase=t%6800,lookBack=phase>2050&&phase<3650;
+ const stride=Math.sin(t/90)*2.3,shake=Math.sin(t/42)*.7;
+ c.save();c.clearRect(0,0,320,200);c.translate(shake,stride);
+ const horizon=87;
+ c.fillStyle='#111a20';c.fillRect(0,-6,320,212);
+ // Corridor with strong perspective and visible ceiling/floor planes.
+ c.fillStyle='#303c40';c.beginPath();c.moveTo(0,0);c.lineTo(320,0);c.lineTo(202,horizon);c.lineTo(118,horizon);c.fill();
+ c.fillStyle='#2d3534';c.beginPath();c.moveTo(0,200);c.lineTo(320,200);c.lineTo(202,horizon+24);c.lineTo(118,horizon+24);c.fill();
+ c.fillStyle='#4b5858';c.beginPath();c.moveTo(0,0);c.lineTo(118,horizon);c.lineTo(118,horizon+24);c.lineTo(0,200);c.fill();
+ c.fillStyle='#3a494b';c.beginPath();c.moveTo(320,0);c.lineTo(202,horizon);c.lineTo(202,horizon+24);c.lineTo(320,200);c.fill();
+ // Endless repeating architectural bays rush toward the player.
+ const speed=t*.00072;
+ for(let i=13;i>=0;i--){
+  const distance=i+1-(speed%1);
+  const depth=1/(.18+distance*.42);
+  const xL=160-45*depth,xR=160+45*depth;
+  const yTop=horizon-37*depth,yBot=horizon+27*depth;
+  if(xL>160||xR<160)continue;
+  c.strokeStyle=i%3===0?'#a69b79':'#697675';c.lineWidth=Math.max(1,depth*2.1);
+  c.strokeRect(xL,yTop,xR-xL,yBot-yTop);
+  // Ceiling strip lights, pipes and floor transverse seams.
+  c.fillStyle=i%4===0?'#ffca8a':'#8c8f7b';
+  c.fillRect(160-10*depth,yTop+2*depth,20*depth,Math.max(1,3*depth));
+  c.strokeStyle='#7a8b87';c.lineWidth=Math.max(1,depth*1.1);
+  c.beginPath();c.moveTo(xL,yBot);c.lineTo(0+(xL-0)*.2,200);c.moveTo(xR,yBot);c.lineTo(320-(320-xR)*.2,200);c.stroke();
+  // Repeating wall panels.
+  c.fillStyle='#1e2c31';c.fillRect(xL-11*depth,yTop+11*depth,7*depth,29*depth);
+  c.fillRect(xR+4*depth,yTop+11*depth,7*depth,29*depth);
+  c.fillStyle='#aa664a';c.fillRect(xL-10*depth,yTop+13*depth,4*depth,4*depth);
+ }
+ // Longitudinal pipe runs and floor guides.
+ for(const side of [-1,1]){
+  c.strokeStyle='#ad8e67';c.lineWidth=5;c.beginPath();c.moveTo(160+side*34,horizon-29);c.lineTo(160+side*130,-10);c.stroke();
+  c.strokeStyle='#667b7b';c.lineWidth=2;c.beginPath();c.moveTo(160+side*34,horizon+22);c.lineTo(160+side*125,205);c.stroke();
+ }
+ if(!lookBack){
+  // Elevator approaches from the vanishing point, with closing metal doors.
+  const p=Math.min(1,phase/2050),w=27+p*80,h=44+p*105,x=160-w/2,y=horizon+18-h;
+  c.fillStyle='#8c928b';c.fillRect(x-5,y-5,w+10,h+10);
+  c.fillStyle='#1a252b';c.fillRect(x,y,w,h);
+  c.fillStyle='#596d73';c.fillRect(x+3,y+3,w/2-5,h-6);c.fillRect(x+w/2+2,y+3,w/2-5,h-6);
+  c.fillStyle='#e8c88b';c.fillRect(160-w*.23,y-13,w*.46,6);
+  c.fillStyle='#d94f48';c.fillRect(x+w+6,y+h*.42,5+p*4,8+p*3);
+ }else{
+  // Turn to face the pursuers: three independently bobbing colorful silhouettes.
+  c.fillStyle='#161f24bb';c.fillRect(0,0,320,200);
+  if(chaseZombie.complete&&chaseZombie.naturalWidth){
+   const a=Math.min(1,(phase-2050)/1200);
+   const runners=[{x:67,base:68,sz:73,offset:0},{x:163,base:61,sz:107,offset:1.5},{x:249,base:71,sz:78,offset:3}];
+   runners.forEach(z=>{
+    const h=z.sz*(1+a*.65),w=h*160/220,bob=Math.sin(t/95+z.offset)*5;
+    c.drawImage(chaseZombie,z.x-w/2,z.base-h*.18+bob,w,h);
+    c.fillStyle='#e74f2b';c.fillRect(z.x-10,z.base+22+bob,6,3);
+   });
+  }
+  // A distinct reaching arm: forearm, palm and five fingers remain anatomically readable.
+  const reach=Math.max(0,Math.min(1,(phase-2680)/660));
+  if(reach>0){
+   c.save();c.translate(160+reach*9,163+reach*11);c.scale(.42+reach*.9,.42+reach*.9);
+   c.fillStyle='#8c9e7d';c.strokeStyle='#293b31';c.lineWidth=5;
+   c.beginPath();c.moveTo(-20,95);c.lineTo(-15,18);c.lineTo(15,18);c.lineTo(26,95);c.closePath();c.fill();c.stroke();
+   c.beginPath();c.ellipse(0,2,26,28,0,0,Math.PI*2);c.fill();c.stroke();
+   for(let k=0;k<4;k++){const x=-21+k*13;c.beginPath();c.roundRect(x,-62-(k===1||k===2?10:0),11,52,5);c.fill();c.stroke()}
+   c.save();c.rotate(-.55);c.beginPath();c.roundRect(-43,-12,13,43,6);c.fill();c.stroke();c.restore();
+   c.restore();
+  }
+ }
+ // Subtle vignette and danger flashes.
+ const grad=c.createRadialGradient(160,100,35,160,100,205);grad.addColorStop(0,'#0000');grad.addColorStop(1,'#03080ab8');c.fillStyle=grad;c.fillRect(0,0,320,200);
+ if(phase>2900&&phase<3400&&Math.sin(t/80)>.5){c.fillStyle='#8d252522';c.fillRect(0,0,320,200)}
+ c.restore();
+};
+
 /* Smooth checker travel: render-independent ghost animation, no board scaling. */
 const originalApplyForMotion=apply;
 apply=function(B,m){
