@@ -1,0 +1,12 @@
+import {build} from 'esbuild';
+import {readFile,writeFile,mkdir,cp} from 'node:fs/promises';
+import {fileURLToPath} from 'node:url';
+import path from 'node:path';
+const root=path.dirname(fileURLToPath(import.meta.url));
+const out=path.resolve(root,'../../newest');
+await mkdir(out,{recursive:true});
+await cp(path.join(root,'public/game'),path.join(out,'game'),{recursive:true});
+await build({stdin:{contents:`import {createRoot} from 'react-dom/client';import {ElevatorGame} from './src/components/ElevatorGame';createRoot(document.getElementById('root')).render(<ElevatorGame/>);`,loader:'tsx',resolveDir:root},bundle:true,minify:true,jsx:'automatic',format:'esm',outfile:path.join(out,'app.js'),alias:{'@':path.join(root,'src')},plugins:[{name:'relative-game-assets',setup(b){b.onLoad({filter:/\.(ts|tsx)$/},async a=>({contents:(await readFile(a.path,'utf8')).replaceAll('"/game/','"./game/'),loader:a.path.endsWith('tsx')?'tsx':'ts'}));}}]});
+const css=(await readFile(path.join(root,'src/styles.css'),'utf8')).replace('@import "tailwindcss";','');
+await writeFile(path.join(out,'style.css'),'*{box-sizing:border-box}button{font:inherit}\n'+css);
+await writeFile(path.join(out,'index.html'),'<!doctype html><html lang="ru"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"><title>Последний лифт — версия 15 октября</title><link rel="stylesheet" href="./style.css"></head><body><div id="root"></div><script type="module" src="./app.js"></script></body></html>');
